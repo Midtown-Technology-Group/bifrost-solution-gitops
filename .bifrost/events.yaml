@@ -35,7 +35,6 @@ events:
         workflow_id: 14e895a5-dd8a-427f-b2b7-b4211f6772d3
         agent_id: null
         event_type: push
-        criteria: null
         input_mapping:
           payload: '{{ payload }}'
         is_active: true
