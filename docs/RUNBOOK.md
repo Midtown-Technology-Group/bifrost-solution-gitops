@@ -64,3 +64,12 @@ deliberate step.
   subscribe to `solution.update_available`; the hourly reconcile replaces that.
 - **Sync semantics:** sync is a durable platform job, serialized with deploys and App SDK updates,
   and deduplicated per install. A newer commit arriving mid-sync is picked up by a rerun.
+
+## Production (bifrost.midtowntg.com)
+
+| Item | Value |
+|---|---|
+| Install | `595787c4-ee7c-4ca1-8817-5f8c19789a40` (provider org), Git-connected to this repo at `main` |
+| Webhook source | `77ca0fcd-d0fa-542f-9030-c3bfb5072d10`, callback `https://bifrost.midtowntg.com/api/hooks/77ca0fcd-d0fa-542f-9030-c3bfb5072d10` |
+| GitHub webhooks | Repository hooks on `Midtown-Technology-Group/docs` and `Midtown-Technology-Group/bifrost-solution-gitops` (push only). An organization hook needs a token with `admin:org_hook`; until then, add a repository hook when onboarding. |
+| Secret | Rotated 2026-11-16 and stored only in Bifrost and the GitHub hooks. Rotate by generating a new value, `POST …/rotate-secret {"secret": …}`, and updating every hook in the same change window. |
