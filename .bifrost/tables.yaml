@@ -1,0 +1,24 @@
+tables:
+  a281b05a-5357-4d64-9b2d-c0e47e32a91f:
+    id: a281b05a-5357-4d64-9b2d-c0e47e32a91f
+    name: gitops-events
+    description: Append-only log of GitOps decisions (push and reconcile triggers, sync outcomes).
+    schema:
+      columns:
+        - {name: occurred_at, type: datetime}
+        - {name: trigger, type: string}
+        - {name: install_id, type: string}
+        - {name: slug, type: string}
+        - {name: action, type: string}
+        - {name: outcome, type: string}
+        - {name: reason, type: string}
+        - {name: repository, type: string}
+        - {name: ref, type: string}
+        - {name: commit, type: string}
+        - {name: job_id, type: string}
+        - {name: detail, type: string}
+    policies:
+      - name: platform_admin_bypass
+        description: Platform administrators read and maintain the GitOps event log.
+        actions: [read, create, update, delete]
+        when: {user: is_platform_admin}

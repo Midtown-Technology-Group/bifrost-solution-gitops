@@ -1,0 +1,56 @@
+# Solution GitOps event sources.
+#
+# GitHub push webhook: add a repository (or organization) webhook pointing at
+#   <public url>/api/hooks/<installed source id>, content type application/json,
+#   events "Just the push event", with the secret from
+#   `POST /api/events/sources/<id>/rotate-secret` (write-only; never in Git).
+#   See docs/RUNBOOK.md.
+#
+# Reconcile schedule: hourly backstop for missed webhooks. It syncs opted-in
+#   installs that the platform's 6-hourly update check reports as behind.
+#   (Built-in platform topics such as `solution.update_available` are only
+#   delivered to topic sources that no Solution owns, so a manifest cannot
+#   subscribe to them directly.)
+events:
+  8251ec93-538b-4818-96b1-c13e5bdd9984:
+    id: 8251ec93-538b-4818-96b1-c13e5bdd9984
+    name: 'Solution GitOps: GitHub push'
+    source_type: webhook
+    event_type: null
+    organization_id: null
+    is_active: true
+    adapter_name: generic
+    webhook_integration_id: null
+    webhook_config:
+      signature_header: X-Hub-Signature-256
+      signature_prefix: sha256=
+      event_type_header: X-GitHub-Event
+      delivery_id_header: X-GitHub-Delivery
+    rate_limit_per_minute: 120
+    rate_limit_window_seconds: 60
+    rate_limit_enabled: true
+    subscriptions:
+      - id: c07fef98-42b8-4d2d-85c8-b37b4ed96450
+        target_type: workflow
+        workflow_id: 14e895a5-dd8a-427f-b2b7-b4211f6772d3
+        agent_id: null
+        event_type: push
+        criteria: null
+        input_mapping:
+          payload: '{{ payload }}'
+        is_active: true
+  242edebc-1cda-4143-9073-1e9acad97b62:
+    id: 242edebc-1cda-4143-9073-1e9acad97b62
+    name: 'Solution GitOps: hourly reconcile'
+    source_type: schedule
+    is_active: true
+    cron_expression: '23 * * * *'
+    timezone: UTC
+    schedule_enabled: true
+    overlap_policy: skip
+    subscriptions:
+      - id: 3f402127-94e4-4de7-aed1-e3c24bfd72b1
+        target_type: workflow
+        workflow_id: 9792a50b-a237-4225-8177-58f2702d9301
+        input_mapping: {}
+        is_active: true

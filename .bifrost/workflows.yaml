@@ -1,0 +1,50 @@
+workflows:
+  14e895a5-dd8a-427f-b2b7-b4211f6772d3:
+    id: 14e895a5-dd8a-427f-b2b7-b4211f6772d3
+    name: gitops_github_push
+    path: functions/gitops.py
+    function_name: gitops_github_push
+    type: workflow
+    description: "Handle a GitHub push webhook: sync opted-in installs that follow the pushed repository and ref."
+    category: Solution GitOps
+    access_level: role_based
+    role_names: []
+    timeout_seconds: 300
+    requested_permissions:
+      mode: restricted
+      grants:
+        - {permission: solutions.read}
+        - {permission: solutions.deploy}
+        - {permission: tables.readwrite}
+  9792a50b-a237-4225-8177-58f2702d9301:
+    id: 9792a50b-a237-4225-8177-58f2702d9301
+    name: gitops_reconcile
+    path: functions/gitops.py
+    function_name: gitops_reconcile
+    type: workflow
+    description: "Backstop for missed webhooks: sync opted-in installs the platform reports as behind their Git ref."
+    category: Solution GitOps
+    access_level: role_based
+    role_names: []
+    timeout_seconds: 300
+    requested_permissions:
+      mode: restricted
+      grants:
+        - {permission: solutions.read}
+        - {permission: solutions.deploy}
+        - {permission: tables.readwrite}
+  a5347cdf-2e02-46cc-8c8b-f2aa24d27fc8:
+    id: a5347cdf-2e02-46cc-8c8b-f2aa24d27fc8
+    name: gitops_status
+    path: functions/gitops.py
+    function_name: gitops_status
+    type: tool
+    description: "List Solution installs with their Git connection, versions, pending updates and GitOps policy."
+    category: Solution GitOps
+    access_level: role_based
+    role_names: []
+    timeout_seconds: 120
+    requested_permissions:
+      mode: restricted
+      grants:
+        - {permission: solutions.read}
