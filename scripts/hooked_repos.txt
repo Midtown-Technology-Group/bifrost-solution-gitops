@@ -1,0 +1,4 @@
+# Repositories whose push webhook points at the Solution GitOps controller.
+# One owner/name per line. After editing, run scripts/rotate_webhook_secret.py.
+Midtown-Technology-Group/bifrost-solution-gitops
+Midtown-Technology-Group/docs

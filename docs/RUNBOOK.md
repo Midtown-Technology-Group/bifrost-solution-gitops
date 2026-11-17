@@ -12,13 +12,10 @@ bifrost solution install-repo https://github.com/Midtown-Technology-Group/bifros
    `tables.readwrite`) in the install's settings.
 2. Find the installed webhook source ID (`bifrost api GET /api/events/sources`; name
    `Solution GitOps: GitHub push`). The callback URL is `https://<instance>/api/hooks/<source-id>`.
-3. Generate the signing secret: `POST /api/events/sources/<source-id>/rotate-secret` with `{}`.
-   The response shows `raw_secret` once. Don't print it, paste it into chat, or commit it.
-4. Add the GitHub webhook. Use one organization webhook, or one per connected repository:
-   - payload URL: the callback URL;
-   - content type: `application/json`;
-   - secret: the value from step 3;
-   - events: **Just the push event**.
+3. List the repositories in [`scripts/hooked_repos.txt`](../scripts/hooked_repos.txt), then run
+   `python scripts/rotate_webhook_secret.py --source-id <source-id>`. It generates a secret,
+   rotates it into Bifrost, and creates or updates a push-only hook on every listed repository.
+   The secret is never printed. It needs repository admin only, not `admin:org_hook`.
 
    GitHub's `ping` delivery is accepted and ignored, because only `push` is subscribed.
 
@@ -28,10 +25,26 @@ bifrost solution install-repo https://github.com/Midtown-Technology-Group/bifros
    from the ref are deleted. Confirm the ref matches what's deployed:
    - `bifrost solution export <install> --mode shareable` and diff it against the repository subpath;
    - or redeploy from that ref first.
-2. **Private repositories** need a GitHub App *Solution Repositories* source (platform runbook
-   `docs/runbooks/private-solution-repositories.md`). Public repositories need nothing.
+2. **Private repositories** need a GitHub App *Solution Repositories* source in the install's
+   scope. Public repositories need nothing. Create the sources with:
+
+   ```bash
+   python scripts/bootstrap_solution_source.py --repo <owner>/<repo> \
+       --scope 00000000-0000-0000-0000-000000000002 --scope GLOBAL
+   ```
+
+   Everything on the Bifrost side is REST. GitHub insists on a person confirming three steps:
+   creating the App, authorizing it, and installing it. The script opens each step in the browser
+   and continues by itself. Notes:
+   - Each scope gets its own App, because Bifrost reuses an App only within the source's own scope.
+   - Rerunning the script for a new repository reuses that scope's App.
+   - Sources bind to the repository's `owner/name`, so (re)create them after a transfer.
+   - Prod's 2.0.1 CLI has no `--git-source-id`. Use REST
+     (`PATCH /api/solutions/{id}` with `git_repo_url`, `repo_subpath`, `git_ref` and `git_source_id`)
+     or a newer CLI.
 3. **Connect:** `bifrost solution git connect <install-id> <repo-url> --ref <branch-or-tag> [--subpath <dir>]`.
 4. **Protect the branch:** require a PR and passing CI, and enforce version bumps for deployable changes.
+   Add the repository to `scripts/hooked_repos.txt` and rerun `scripts/rotate_webhook_secret.py`.
 5. **Opt in:** add the install ID to `modules/policy.py` with `auto` and merge. The controller
    then syncs itself, so the new policy is live after that sync.
 
@@ -71,5 +84,5 @@ deliberate step.
 |---|---|
 | Install | `595787c4-ee7c-4ca1-8817-5f8c19789a40` (provider org), Git-connected to this repo at `main` |
 | Webhook source | `77ca0fcd-d0fa-542f-9030-c3bfb5072d10`, callback `https://bifrost.midtowntg.com/api/hooks/77ca0fcd-d0fa-542f-9030-c3bfb5072d10` |
-| GitHub webhooks | Repository hooks on `Midtown-Technology-Group/docs` and `Midtown-Technology-Group/bifrost-solution-gitops` (push only). An organization hook needs a token with `admin:org_hook`; until then, add a repository hook when onboarding. |
-| Secret | Rotated 2026-11-16 and stored only in Bifrost and the GitHub hooks. Rotate by generating a new value, `POST …/rotate-secret {"secret": …}`, and updating every hook in the same change window. |
+| GitHub webhooks | Repository hooks on every repository in `scripts/hooked_repos.txt` (push only), managed by `scripts/rotate_webhook_secret.py`. No organization hook, so no `admin:org_hook` token scope. |
+| Secret | Stored only in Bifrost and the GitHub hooks. Rotate with `scripts/rotate_webhook_secret.py`; last rotated 2026-11-17. |
