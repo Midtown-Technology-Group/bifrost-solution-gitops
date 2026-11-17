@@ -154,7 +154,7 @@ def start_setup(args: argparse.Namespace, scope: str, reuse_from: dict[str, Any]
         print(f"    reusing App '{reuse_from['app_name']}' (source {reuse_from['id']})")
         return setup["setup_id"]
     setup = api("POST", "/api/github/app/manifest", {
-        "purpose": "solution", "owner": args.owner, "owner_type": "organization",
+        "purpose": "solution", "owner": args.owner, "owner_type": args.owner_type,
         "name": name, "public": False, **scope_body(scope),
     })
     setup_id = setup["setup_id"]
@@ -204,8 +204,9 @@ def repository_id(args: argparse.Namespace, setup_id: str, inst: int) -> int:
     found = probe()
     if found:
         return found
-    open_for_user(f"Add {args.repo} to the App installation ('Only select repositories')",
-                  f"https://github.com/organizations/{args.owner}/settings/installations/{inst}")
+    settings = ("https://github.com/settings/installations" if args.owner_type == "user"
+                else f"https://github.com/organizations/{args.owner}/settings/installations")
+    open_for_user(f"Add {args.repo} to the App installation ('Only select repositories')", f"{settings}/{inst}")
     return wait_for(f"{args.repo} visible to the installation", probe, args.timeout)
 
 
@@ -236,6 +237,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--scope", action="append", required=True,
                         help="Bifrost organization UUID, or GLOBAL. Repeat for several; each gets its own App")
     parser.add_argument("--owner", help="GitHub organization that owns the App (default: the repository owner)")
+    parser.add_argument("--owner-type", choices=("organization", "user"), default="organization",
+                        help="use 'user' while the repository still lives in a personal account")
     parser.add_argument("--app-name", default="MTG Bifrost Solutions",
                         help="base App name; Global appends ' (Global)'")
     parser.add_argument("--timeout", type=float, default=900, help="seconds to wait for each browser step")
