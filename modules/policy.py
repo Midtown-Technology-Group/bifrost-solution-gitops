@@ -18,6 +18,5 @@ POLICY: dict[str, str] = {
     # This controller (Midtown-Technology-Group/bifrost-solution-gitops @ main).
     "solution-gitops": "auto",
     # Bifrost Docs, provider org (Midtown-Technology-Group/docs @ mtg).
-    # Flip to "auto" once mtg has branch protection and required CI.
-    "44832b44-87db-4837-afab-b22fc47f88db": "notify",
+    "44832b44-87db-4837-afab-b22fc47f88db": "auto",
 }
